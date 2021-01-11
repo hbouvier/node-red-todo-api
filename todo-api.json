@@ -1,58 +1,78 @@
 [
     {
-        "id": "cd65bfbc.12b68",
+        "id": "ba09fee5.92d5",
         "type": "tab",
-        "label": "Flow 1",
+        "label": "REST API (todo)",
         "disabled": false,
         "info": ""
     },
     {
-        "id": "95d80353.19f47",
+        "id": "f79b6233.c3abd",
+        "type": "tab",
+        "label": "Proxy (GraphQL)",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "e11837db.48a6d8",
+        "type": "graphql-server",
+        "endpoint": "${PROXY_URL}",
+        "name": "Proxy Server"
+    },
+    {
+        "id": "f9dabcc3.6a648",
         "type": "http in",
-        "z": "cd65bfbc.12b68",
-        "name": "GET /api/v1/health",
-        "url": "/api/v1/health",
-        "method": "get",
+        "z": "ba09fee5.92d5",
+        "name": "POST /v1/todo/task",
+        "url": "/v1/todo/task",
+        "method": "post",
         "upload": false,
         "swaggerDoc": "",
-        "x": 240,
-        "y": 240,
+        "x": 150,
+        "y": 320,
         "wires": [
             [
-                "277ee2e9.d6218e"
+                "75670c0d.aab274"
             ]
         ]
     },
     {
-        "id": "471fb41a.ec1aac",
-        "type": "http response",
-        "z": "cd65bfbc.12b68",
-        "name": "OK",
-        "statusCode": "",
-        "headers": {},
-        "x": 610,
-        "y": 240,
-        "wires": []
+        "id": "eb587876.9e9d98",
+        "type": "function",
+        "z": "ba09fee5.92d5",
+        "name": "GraphQL Variables",
+        "func": "const capitalize = (s) => {\n  if (typeof s !== 'string') return ''\n  return s.charAt(0).toUpperCase() + s.slice(1)\n};\n\nmsg.variables = { \n    list: 1,\n    item: capitalize(msg.payload.item.replace(/^\\s*(:?de la|des|de|du|un|une)\\s+/, '')),\n    modified: (new Date()).toISOString(),\n    done: false,\n    starred: false\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "x": 570,
+        "y": 280,
+        "wires": [
+            [
+                "197fbaf1.099445"
+            ]
+        ]
     },
     {
-        "id": "277ee2e9.d6218e",
+        "id": "b38fd96e.fddd88",
         "type": "change",
-        "z": "cd65bfbc.12b68",
-        "name": "HTTP/OK",
+        "z": "ba09fee5.92d5",
+        "name": "OK",
         "rules": [
             {
                 "t": "set",
                 "p": "payload",
                 "pt": "msg",
-                "to": "OK",
-                "tot": "str"
+                "to": "msg.payload.insert_todo_task.returning[0]",
+                "tot": "jsonata"
             },
             {
                 "t": "set",
                 "p": "statusCode",
                 "pt": "msg",
                 "to": "200",
-                "tot": "str"
+                "tot": "num"
             }
         ],
         "action": "",
@@ -60,12 +80,295 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 440,
+        "x": 1030,
+        "y": 260,
+        "wires": [
+            [
+                "d2e1d91d.ef9568"
+            ]
+        ]
+    },
+    {
+        "id": "d2e1d91d.ef9568",
+        "type": "http response",
+        "z": "ba09fee5.92d5",
+        "name": "HTTP/Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 1260,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "197fbaf1.099445",
+        "type": "graphql",
+        "z": "ba09fee5.92d5",
+        "name": "Upsert task Mutation",
+        "graphql": "e11837db.48a6d8",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "mutation mutation_upsert_todo_task(\n    $list: Int!,\n    $item: String!,\n    $modified: timestamp!,\n    $done: Boolean,\n    $starred: Boolean!\n) {\n    insert_todo_task(\n        objects: [{\n          list: $list\n          item: $item\n          modified: $modified\n          done: $done\n          starred: $starred\n    }]\n    on_conflict: {\n        constraint: task_list_item_key\n        update_columns: [modified, done]\n    }) {\n        returning {\n            id\n        }\n    }\n}\n",
+        "x": 800,
+        "y": 280,
+        "wires": [
+            [
+                "b38fd96e.fddd88"
+            ],
+            [
+                "400330d5.d12a"
+            ]
+        ]
+    },
+    {
+        "id": "33f409f1.a02b96",
+        "type": "debug",
+        "z": "ba09fee5.92d5",
+        "name": "Mutation ERROR",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1270,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "400330d5.d12a",
+        "type": "change",
+        "z": "ba09fee5.92d5",
+        "name": "Bad Request",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\"msg\":\"Bad mutation\"}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "statusCode",
+                "pt": "msg",
+                "to": "400",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1050,
+        "y": 300,
+        "wires": [
+            [
+                "d2e1d91d.ef9568",
+                "33f409f1.a02b96"
+            ]
+        ]
+    },
+    {
+        "id": "75670c0d.aab274",
+        "type": "switch",
+        "z": "ba09fee5.92d5",
+        "name": "Authenticated",
+        "property": "payload.token",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "API_TOKEN",
+                "vt": "env"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 360,
+        "y": 320,
+        "wires": [
+            [
+                "eb587876.9e9d98"
+            ],
+            [
+                "ea48078.72a77f8"
+            ]
+        ]
+    },
+    {
+        "id": "ea48078.72a77f8",
+        "type": "change",
+        "z": "ba09fee5.92d5",
+        "name": "401/Unauthorized",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{\"msg\":\"Unauthorized\"}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "statusCode",
+                "pt": "msg",
+                "to": "401",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 570,
+        "y": 360,
+        "wires": [
+            [
+                "f9709d9f.d9eeb"
+            ]
+        ]
+    },
+    {
+        "id": "f9709d9f.d9eeb",
+        "type": "http response",
+        "z": "ba09fee5.92d5",
+        "name": "HTTP/Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 800,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "fa0fc262.bd54",
+        "type": "http in",
+        "z": "f79b6233.c3abd",
+        "name": "POST /v1/graphql",
+        "url": "/v1/graphql",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 150,
         "y": 240,
         "wires": [
             [
-                "471fb41a.ec1aac"
+                "e13ee544.5a2ad8"
             ]
         ]
+    },
+    {
+        "id": "3874875f.046ed8",
+        "type": "http response",
+        "z": "f79b6233.c3abd",
+        "name": "HTTP/Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 760,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "7b57f772.de4ef8",
+        "type": "http request",
+        "z": "f79b6233.c3abd",
+        "name": "GraphQL",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "${GRAPHQL_URL}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 580,
+        "y": 240,
+        "wires": [
+            [
+                "3874875f.046ed8"
+            ]
+        ]
+    },
+    {
+        "id": "e13ee544.5a2ad8",
+        "type": "change",
+        "z": "f79b6233.c3abd",
+        "name": "X-Hasura-Access-Key",
+        "rules": [
+            {
+                "t": "set",
+                "p": "headers",
+                "pt": "msg",
+                "to": "{}",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "headers[\"X-Hasura-Access-Key\"]",
+                "pt": "msg",
+                "to": "req.headers.authorization",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "headers['Accept']",
+                "pt": "msg",
+                "to": "req.headers.accept",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "headers['Content-Type']",
+                "pt": "msg",
+                "to": "req.headers['content-type']",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "headers['User-Agent']",
+                "pt": "msg",
+                "to": "req.headers['user-agent']",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 380,
+        "y": 240,
+        "wires": [
+            [
+                "7b57f772.de4ef8"
+            ]
+        ]
+    },
+    {
+        "id": "a7c7ba84.370298",
+        "type": "comment",
+        "z": "f79b6233.c3abd",
+        "name": "Hasura authentification proxy",
+        "info": "Take the `authorization` header and rename it to `X-Hasura-Access-Key` with no modification.",
+        "x": 180,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "911f7d7b.b4368",
+        "type": "comment",
+        "z": "ba09fee5.92d5",
+        "name": "API Documentation",
+        "info": "Given we receive a request shaped like this:\n\n```json\n{\n    \"list\":\"epicerie\",\n    \"item\":\"XXXXX\",\n    \"done\":false,\n    \"starred\": false,\n    \"modified\":ISO Date,\n    \"token\":\"API_TOKEN\"\n}\n```\n\nwith a valid API TOKEN, we will build a GraphQL mutation to UPSERT the item in the TODO list.\n",
+        "x": 150,
+        "y": 140,
+        "wires": []
     }
 ]
