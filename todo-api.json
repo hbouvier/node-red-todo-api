@@ -1,1 +1,71 @@
-[]
+[
+    {
+        "id": "cd65bfbc.12b68",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "95d80353.19f47",
+        "type": "http in",
+        "z": "cd65bfbc.12b68",
+        "name": "GET /api/v1/health",
+        "url": "/api/v1/health",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 240,
+        "y": 240,
+        "wires": [
+            [
+                "277ee2e9.d6218e"
+            ]
+        ]
+    },
+    {
+        "id": "471fb41a.ec1aac",
+        "type": "http response",
+        "z": "cd65bfbc.12b68",
+        "name": "OK",
+        "statusCode": "",
+        "headers": {},
+        "x": 610,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "277ee2e9.d6218e",
+        "type": "change",
+        "z": "cd65bfbc.12b68",
+        "name": "HTTP/OK",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "OK",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "statusCode",
+                "pt": "msg",
+                "to": "200",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 440,
+        "y": 240,
+        "wires": [
+            [
+                "471fb41a.ec1aac"
+            ]
+        ]
+    }
+]
