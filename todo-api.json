@@ -32,7 +32,7 @@
         "y": 320,
         "wires": [
             [
-                "75670c0d.aab274"
+                "eb587876.9e9d98"
             ]
         ]
     },
@@ -46,11 +46,12 @@
         "noerr": 0,
         "initialize": "",
         "finalize": "",
-        "x": 570,
-        "y": 280,
+        "x": 370,
+        "y": 320,
         "wires": [
             [
-                "197fbaf1.099445"
+                "197fbaf1.099445",
+                "6c5c1096.16d6f"
             ]
         ]
     },
@@ -58,7 +59,7 @@
         "id": "b38fd96e.fddd88",
         "type": "change",
         "z": "ba09fee5.92d5",
-        "name": "OK",
+        "name": "HTTP/200",
         "rules": [
             {
                 "t": "set",
@@ -80,8 +81,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 1030,
-        "y": 260,
+        "x": 850,
+        "y": 300,
         "wires": [
             [
                 "d2e1d91d.ef9568"
@@ -95,29 +96,9 @@
         "name": "HTTP/Response",
         "statusCode": "",
         "headers": {},
-        "x": 1260,
-        "y": 280,
+        "x": 1060,
+        "y": 320,
         "wires": []
-    },
-    {
-        "id": "197fbaf1.099445",
-        "type": "graphql",
-        "z": "ba09fee5.92d5",
-        "name": "Upsert task Mutation",
-        "graphql": "e11837db.48a6d8",
-        "format": "handlebars",
-        "syntax": "mustache",
-        "template": "mutation mutation_upsert_todo_task(\n    $list: Int!,\n    $item: String!,\n    $modified: timestamp!,\n    $done: Boolean,\n    $starred: Boolean!\n) {\n    insert_todo_task(\n        objects: [{\n          list: $list\n          item: $item\n          modified: $modified\n          done: $done\n          starred: $starred\n    }]\n    on_conflict: {\n        constraint: task_list_item_key\n        update_columns: [modified, done]\n    }) {\n        returning {\n            id\n        }\n    }\n}\n",
-        "x": 800,
-        "y": 280,
-        "wires": [
-            [
-                "b38fd96e.fddd88"
-            ],
-            [
-                "400330d5.d12a"
-            ]
-        ]
     },
     {
         "id": "33f409f1.a02b96",
@@ -132,15 +113,15 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1270,
-        "y": 340,
+        "x": 1070,
+        "y": 360,
         "wires": []
     },
     {
         "id": "400330d5.d12a",
         "type": "change",
         "z": "ba09fee5.92d5",
-        "name": "Bad Request",
+        "name": "HTTP/400",
         "rules": [
             {
                 "t": "set",
@@ -162,90 +143,14 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 1050,
-        "y": 300,
+        "x": 850,
+        "y": 340,
         "wires": [
             [
                 "d2e1d91d.ef9568",
                 "33f409f1.a02b96"
             ]
         ]
-    },
-    {
-        "id": "75670c0d.aab274",
-        "type": "switch",
-        "z": "ba09fee5.92d5",
-        "name": "Authenticated",
-        "property": "payload.token",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "API_TOKEN",
-                "vt": "env"
-            },
-            {
-                "t": "else"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 360,
-        "y": 320,
-        "wires": [
-            [
-                "eb587876.9e9d98"
-            ],
-            [
-                "ea48078.72a77f8"
-            ]
-        ]
-    },
-    {
-        "id": "ea48078.72a77f8",
-        "type": "change",
-        "z": "ba09fee5.92d5",
-        "name": "401/Unauthorized",
-        "rules": [
-            {
-                "t": "set",
-                "p": "payload",
-                "pt": "msg",
-                "to": "{\"msg\":\"Unauthorized\"}",
-                "tot": "json"
-            },
-            {
-                "t": "set",
-                "p": "statusCode",
-                "pt": "msg",
-                "to": "401",
-                "tot": "num"
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 570,
-        "y": 360,
-        "wires": [
-            [
-                "f9709d9f.d9eeb"
-            ]
-        ]
-    },
-    {
-        "id": "f9709d9f.d9eeb",
-        "type": "http response",
-        "z": "ba09fee5.92d5",
-        "name": "HTTP/Response",
-        "statusCode": "",
-        "headers": {},
-        "x": 800,
-        "y": 360,
-        "wires": []
     },
     {
         "id": "fa0fc262.bd54",
@@ -313,8 +218,8 @@
                 "t": "set",
                 "p": "headers[\"X-Hasura-Access-Key\"]",
                 "pt": "msg",
-                "to": "req.headers.authorization",
-                "tot": "msg"
+                "to": "GRAPHQL_TOKEN",
+                "tot": "env"
             },
             {
                 "t": "set",
@@ -347,7 +252,8 @@
         "y": 240,
         "wires": [
             [
-                "7b57f772.de4ef8"
+                "7b57f772.de4ef8",
+                "4bd213b1.03acdc"
             ]
         ]
     },
@@ -369,6 +275,60 @@
         "info": "Given we receive a request shaped like this:\n\n```json\n{\n    \"list\":\"epicerie\",\n    \"item\":\"XXXXX\",\n    \"done\":false,\n    \"starred\": false,\n    \"modified\":ISO Date,\n    \"token\":\"API_TOKEN\"\n}\n```\n\nwith a valid API TOKEN, we will build a GraphQL mutation to UPSERT the item in the TODO list.\n",
         "x": 150,
         "y": 140,
+        "wires": []
+    },
+    {
+        "id": "197fbaf1.099445",
+        "type": "graphql",
+        "z": "ba09fee5.92d5",
+        "name": "Upsert task Mutation",
+        "graphql": "e11837db.48a6d8",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "mutation mutation_upsert_todo_task(\n    $list: Int!,\n    $item: String!,\n    $modified: timestamp!,\n    $done: Boolean,\n    $starred: Boolean!\n) {\n    insert_todo_task(\n        objects: [{\n          list: $list\n          item: $item\n          modified: $modified\n          done: $done\n          starred: $starred\n    }]\n    on_conflict: {\n        constraint: task_list_item_key\n        update_columns: [modified, done]\n    }) {\n        returning {\n            id\n        }\n    }\n}\n",
+        "x": 600,
+        "y": 320,
+        "wires": [
+            [
+                "b38fd96e.fddd88"
+            ],
+            [
+                "400330d5.d12a"
+            ]
+        ]
+    },
+    {
+        "id": "4bd213b1.03acdc",
+        "type": "debug",
+        "z": "f79b6233.c3abd",
+        "name": "GraphQL resquest",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "6c5c1096.16d6f",
+        "type": "debug",
+        "z": "ba09fee5.92d5",
+        "name": "UPSERT mutation",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 600,
+        "y": 280,
         "wires": []
     }
 ]
