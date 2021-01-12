@@ -2,7 +2,7 @@
     "name": "node-red-todo-api",
     "description": "A Node-RED Project",
     "version": "0.0.1",
-    "dependencies": {},
+    "dependencies": {"node-red-contrib-graphql": "~0.2.5"},
     "node-red": {
         "settings": {
             "flowFile": "todo-api.json",
